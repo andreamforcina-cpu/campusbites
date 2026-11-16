@@ -1,0 +1,2 @@
+import React from 'react';import {Link} from 'react-router-dom';import {useRecipes} from '../contexts/RecipeContext';import RecipeCard from '../components/RecipeCard';
+export default function Saved(){const {saved}=useRecipes();return <><p className="eyebrow">Your collection</p><h1>Recipes worth keeping.</h1>{saved.length?<div className="grid">{saved.map(meal=><RecipeCard key={meal.idMeal} meal={meal}/>)}</div>:<p>No saved recipes yet. <Link to="/recipes">Discover something good</Link> and select Save.</p>}</>}
