@@ -1,0 +1,11 @@
+import React,{useState,useEffect} from 'react';
+import {useSearchParams} from 'react-router-dom';
+import {searchMeals} from '../services/api';
+import RecipeCard from '../components/RecipeCard';
+export default function Discover(){
+ const [params,setParams]=useSearchParams();const query=params.get('q')??'pasta'; const category=params.get('category')??'';
+ const [input,setInput]=useState(query),[meals,setMeals]=useState([]),[loading,setLoading]=useState(true),[error,setError]=useState(''),[retry,setRetry]=useState(0);
+ useEffect(()=>{setInput(query);const controller=new AbortController();setLoading(true);setError('');searchMeals(query,controller.signal).then(data=>{if(!controller.signal.aborted)setMeals(data);}).catch(e=>{if(!controller.signal.aborted)setError(e.message);}).finally(()=>{if(!controller.signal.aborted)setLoading(false);});return()=>controller.abort();},[query,retry]);
+ const categories=[...new Set(meals.map(m=>m.strCategory).filter(Boolean))].sort(); const shown=meals.filter(m=>!category||m.strCategory===category);
+ return <><section className="hero"><p className="eyebrow">Small kitchens. Good food.</p><h1>Your next meal starts here.</h1><p>Find a recipe, keep the good ones, and make a plan for the week.</p></section><form className="search" onSubmit={e=>{e.preventDefault();setParams({q:input.trim()});}}><label htmlFor="search">Search recipes by name</label><div className="input-row"><input id="search" value={input} onChange={e=>setInput(e.target.value)} placeholder="Try chicken, pasta, or soup"/><button type="submit">Find recipes</button></div></form>{loading?<p role="status">Finding recipes…</p>:error?<div role="alert"><p>{error}</p><button onClick={()=>setRetry(x=>x+1)}>Try again</button></div>:<><div className="results-bar"><p role="status">{shown.length} recipes found</p><label>Category <select value={category} onChange={e=>setParams({q:query,...(e.target.value?{category:e.target.value}:{})})}><option value="">All categories</option>{categories.map(c=><option key={c}>{c}</option>)}</select></label></div>{!shown.length?<p>No matching recipes. Try another name or clear the category filter.</p>:<div className="grid">{shown.map(meal=><RecipeCard key={meal.idMeal} meal={meal}/>)}</div>}</> }</>;
+}
